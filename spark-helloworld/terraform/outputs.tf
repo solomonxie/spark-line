@@ -8,9 +8,14 @@ output "spark_node_public_dns" {
   description = "Public DNS name of Ubuntu spark Node"
 }
 
-output "spark_bootstrap_server" {
-  value       = "${aws_instance.spark_hello_node.public_ip}:9092"
-  description = "spark Bootstrap Server endpoint"
+output "spark_master_url" {
+  value       = "spark://${aws_instance.spark_hello_node.public_dns}:7077"
+  description = "Spark Master URL for workers/spark-submit to connect to"
+}
+
+output "spark_master_ui" {
+  value       = "http://${aws_instance.spark_hello_node.public_ip}:8080"
+  description = "Spark Master Web UI"
 }
 
 output "ssh_spark_command" {

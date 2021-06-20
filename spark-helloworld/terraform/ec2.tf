@@ -12,9 +12,25 @@ resource "aws_security_group" "spark_hello_sg" {
   }
 
   ingress {
-    description = "spark Broker Port"
-    from_port   = 9092
-    to_port     = 9092
+    description = "Spark Master RPC (spark://host:7077)"
+    from_port   = 7077
+    to_port     = 7077
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    description = "Spark Master Web UI"
+    from_port   = 8080
+    to_port     = 8080
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    description = "Spark Worker Web UI"
+    from_port   = 8081
+    to_port     = 8081
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
@@ -33,7 +49,7 @@ resource "aws_security_group" "spark_hello_sg" {
 
 # --- Key Pair ---
 resource "aws_key_pair" "deployer" {
-  key_name   = "spark-key"
+  key_name   = var.ssh_key_name
   public_key = file(var.public_key_path)
 }
 
@@ -58,15 +74,23 @@ data "aws_ami" "ubuntu_2604" {
 
 # --- EC2 Instances ---
 
-# 1. spark Node: Ubuntu 26.04 (t2.small, 1 vCPU, 2GB RAM, 25GB EBS)
+# 1. spark Node: Ubuntu 26.04 (t2.small, 1 vCPU, 2GB RAM, 20GB EBS)
 resource "aws_instance" "spark_hello_node" {
   ami                    = data.aws_ami.ubuntu_2604.id
   instance_type          = "t2.small"
   key_name               = aws_key_pair.deployer.key_name
   vpc_security_group_ids = [aws_security_group.spark_hello_sg.id]
 
+  # Ubuntu 24.04+ defaults /tmp to tmpfs; keep it on disk like classic Ubuntu.
+  user_data_replace_on_change = true
+  user_data                   = <<-EOF
+    #cloud-config
+    runcmd:
+      - systemctl mask --now tmp.mount
+  EOF
+
   root_block_device {
-    volume_size           = 8
+    volume_size           = 20
     volume_type           = "gp3"
     delete_on_termination = true
   }
