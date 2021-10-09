@@ -1,0 +1,71 @@
+- name: Update apt cache
+  become: true
+  ansible.builtin.apt:
+    update_cache: true
+
+- name: Install base packages
+  become: true
+  ansible.builtin.apt:
+    name:
+      - openjdk-11-jdk-headless
+      - wget
+      - tar
+      - python3-pip
+      - python3-venv
+    state: present
+
+- name: Install pyspark
+  ansible.builtin.pip:
+    name: pyspark
+    extra_args: "--quiet --break-system-packages --use-pep517"
+
+- name: Install pandas
+  ansible.builtin.pip:
+    name: pandas
+    extra_args: "--quiet --break-system-packages"
+
+- name: Download Spark archive
+  ansible.builtin.get_url:
+    url: "{{ spark_download_url }}"
+    dest: "/tmp/{{ spark_archive }}"
+
+- name: Check if Spark is already extracted
+  ansible.builtin.stat:
+    path: "{{ spark_home }}/bin/spark-submit"
+  register: spark_installed
+
+- name: Extract Spark archive
+  become: true
+  ansible.builtin.unarchive:
+    src: "/tmp/{{ spark_archive }}"
+    dest: /opt
+    remote_src: true
+  when: not spark_installed.stat.exists
+
+- name: Rename extracted Spark dir to /opt/spark
+  become: true
+  ansible.builtin.command: "mv /opt/spark-{{ spark_version }}-bin-{{ hadoop_version }} {{ spark_home }}"
+  when: not spark_installed.stat.exists
+
+- name: Remove downloaded archive
+  ansible.builtin.file:
+    path: "/tmp/{{ spark_archive }}"
+    state: absent
+
+- name: Own /opt/spark by ubuntu
+  become: true
+  ansible.builtin.file:
+    path: "{{ spark_home }}"
+    owner: ubuntu
+    group: ubuntu
+    recurse: true
+
+- name: Set Spark environment variables
+  become: true
+  ansible.builtin.copy:
+    dest: /etc/profile.d/spark.sh
+    content: |
+      export SPARK_HOME={{ spark_home }}
+      export PATH=$PATH:$SPARK_HOME/bin:$SPARK_HOME/sbin
+      export PYSPARK_PYTHON=python3
+    mode: "0644"
