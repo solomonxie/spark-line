@@ -8,9 +8,12 @@
 #                                  ├─▶ output.ssh_spark_command
 #                                  └─▶ output.instance_id
 #  var.aws_profile ────────────────────▶ output.aws_profile
+#  var.private_key_path ───────────────▶ output.ssh_private_key_path
 #
 # instance_id is consumed back out-of-band by the Makefile
 # (`terraform output -raw instance_id`) for start-server / stop-server.
+# spark_node_public_ip / ssh_private_key_path are likewise consumed by the
+# Makefile's generate-data / push-job / fetch-results targets.
 output "spark_node_public_ip" {
   value       = aws_instance.spark_hello_node.public_ip
   description = "Public IP of Ubuntu spark Node"
@@ -34,6 +37,11 @@ output "spark_master_ui" {
 output "ssh_spark_command" {
   value       = "ssh -i ${var.private_key_path} ubuntu@${aws_instance.spark_hello_node.public_ip}"
   description = "Command to SSH into the spark node"
+}
+
+output "ssh_private_key_path" {
+  value       = var.private_key_path
+  description = "Local path to the SSH private key, for scp/ssh in the Makefile"
 }
 
 output "instance_id" {
