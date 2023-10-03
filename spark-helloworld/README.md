@@ -15,7 +15,11 @@ Infra is throwaway by design: spin up, poke at Spark, tear down.
   resource graph and the self-termination safety net.
 - `ansible/` — automates what `manual_build.sh` does by hand (Java, Spark,
   pyspark) against the node Terraform created. See `ansible/README.md`.
-- `spark_etl.py` — example PySpark job to run once the node is up.
+- `hello_01_spark_session.py` ... `hello_08_real_world_etl.py` — a
+  progressive study path, one PySpark concept per file. See below.
+- `spark_etl.py` — example PySpark job to run once the node is up (a leaner
+  version of `hello_08_real_world_etl.py`'s pipeline, assuming the data
+  file is already downloaded).
 - `Makefile` — day-to-day commands, wraps Terraform/Ansible/AWS CLI calls
   (see below).
 
@@ -52,6 +56,51 @@ spark-submit --version
 
 Master UI: `http://<public-ip>:8080` (`terraform -chdir=terraform output
 spark_master_ui`).
+
+## Progressive study path
+
+Eight standalone scripts, `hello_01_...py` through `hello_08_...py`, each
+covering one PySpark concept. Every file is fully self-contained — its own
+`SparkSession`, its own data, no imports between them — so you can run any
+one of them on its own, in any order, and read it top to bottom without
+chasing definitions across files. Later steps do reuse earlier steps'
+*code* where it makes sense (the same synthetic dataset shows up in steps
+3–7, building up one transformation at a time) — that's copied in, not
+imported, on purpose.
+
+| Step | File | Concept |
+| --- | --- | --- |
+| 1 | `hello_01_spark_session.py` | Create a `SparkSession`, run a distributed count |
+| 2 | `hello_02_rdd_basics.py` | RDDs: `map` / `filter` / `reduce` / `reduceByKey` |
+| 3 | `hello_03_dataframe_basics.py` | DataFrames: explicit schema, `select`, `filter` |
+| 4 | `hello_04_transformations.py` | `withColumn`, `when`, renaming, sorting |
+| 5 | `hello_05_aggregations.py` | `groupBy().agg()` |
+| 6 | `hello_06_window_functions.py` | `Window` + `dense_rank()` for top-N per group |
+| 7 | `hello_07_read_write_files.py` | Writing/reading partitioned Parquet |
+| 8 | `hello_08_real_world_etl.py` | Capstone: same pipeline against a real, auto-downloaded dataset |
+
+Run any step directly — no cluster required, it defaults to `local[*]`:
+
+```
+python3 hello_01_spark_session.py
+```
+
+To run a step against the real standalone cluster from `terraform/` +
+`ansible/` instead, point it at the master with an env var (SSH into the
+node first):
+
+```
+SPARK_MASTER_URL=spark://$(hostname):7077 python3 hello_01_spark_session.py
+```
+
+`hello_08_real_world_etl.py` downloads a real NYC Yellow Taxi Parquet file
+(~50MB) into this directory the first time it runs, and writes its output
+next to it — both are gitignored, safe to delete and re-run.
+
+Once you've been through all eight, `spark_etl.py` is the same style of
+job assuming the dataset's already there — and from there,
+`spark-1b-rows-challenge/` in the repo root pushes further (see the root
+`README.md`).
 
 ## Self-termination
 
