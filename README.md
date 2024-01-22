@@ -24,6 +24,11 @@ experiment, tear down.
   from your own machine via Databricks Connect. Progressive path through
   Delta tables, MERGE upserts, Volumes, and submitting a Databricks Job.
 
+- [`hello-airflow/`](hello-airflow/) — Apache Airflow standalone on one EC2
+  instance, provisioned with Terraform + Ansible. Progressive path through
+  DAGs, XComs, branching, the TaskFlow API, and retries — each step
+  runnable locally via `DAG.test()`, no scheduler required.
+
 
 ## Conventions
 

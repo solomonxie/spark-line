@@ -1,0 +1,14 @@
+[Unit]
+Description=Airflow standalone (webserver + scheduler + triggerer)
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+Environment=AIRFLOW_HOME={{ airflow_home }}
+ExecStart={{ airflow_home }}/venv/bin/airflow standalone
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

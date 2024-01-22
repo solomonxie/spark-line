@@ -1,0 +1,14 @@
+airflow_version: "2.10.5"
+airflow_home: "/opt/airflow"
+
+# Copied into {{ airflow_home }}/dags/ so the study path shows up in the
+# deployed webserver too, not just via `python3 <file>` locally.
+airflow_dag_files:
+  - hello_airflow_01_hello_dag.py
+  - hello_airflow_02_task_dependencies.py
+  - hello_airflow_03_xcom_data_passing.py
+  - hello_airflow_04_branching.py
+  - hello_airflow_05_taskflow_api.py
+  - hello_airflow_06_retries.py
+  - hello_airflow_07_schedule_and_sensors.py
+  - hello_airflow_08_real_pipeline.py
