@@ -1,0 +1,5 @@
+- name: Setup Airflow node
+  hosts: airflow_nodes
+  gather_facts: true
+  roles:
+    - admin
