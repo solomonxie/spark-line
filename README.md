@@ -29,6 +29,11 @@ experiment, tear down.
   DAGs, XComs, branching, the TaskFlow API, and retries — each step
   runnable locally via `DAG.test()`, no scheduler required.
 
+- [`hello-dbt/`](hello-dbt/) — dbt against local DuckDB, zero infra to
+  start. Progressive path through models, `ref()`, incremental builds,
+  tests, and macros, with an optional EC2 Postgres target (Terraform +
+  Ansible) for going beyond DuckDB.
+
 
 ## Conventions
 
