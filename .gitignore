@@ -27,3 +27,7 @@ hello-dbt/logs/
 hello-dbt/dbt_packages/
 hello-dbt/.user.yml
 *.duckdb
+
+# hello-dagster: `dagster dev` writes a temp storage dir in cwd if
+# DAGSTER_HOME isn't set
+.tmp_dagster_home_*/

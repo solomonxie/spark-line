@@ -34,6 +34,11 @@ experiment, tear down.
   tests, and macros, with an optional EC2 Postgres target (Terraform +
   Ansible) for going beyond DuckDB.
 
+- [`hello-dagster/`](hello-dagster/) — Dagster (`dagster dev`) on one EC2
+  instance, provisioned with Terraform + Ansible. Progressive path through
+  software-defined assets, resources, IO managers, partitions, and
+  schedules/sensors — each step runnable locally via `materialize()`.
+
 
 ## Conventions
 
