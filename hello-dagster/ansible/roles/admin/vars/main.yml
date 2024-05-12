@@ -1,0 +1,13 @@
+dagster_home: "/opt/dagster"
+
+# Deployed to the node and loaded by `dagster dev` as separate code
+# locations (one -f flag each) — see templates/dagster-dev.service.j2.
+dagster_files:
+  - dagster_01_hello_asset.py
+  - dagster_02_asset_dependencies.py
+  - dagster_03_ops_and_jobs.py
+  - dagster_04_resources.py
+  - dagster_05_io_manager.py
+  - dagster_06_partitions.py
+  - dagster_07_schedules_and_sensors.py
+  - dagster_08_real_pipeline.py
