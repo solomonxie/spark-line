@@ -10,7 +10,9 @@ experiment, tear down.
 
 - [`spark-helloworld/`](spark-helloworld/) — single-node Spark master/worker
   on one EC2 instance, provisioned with Terraform + Ansible. Starting point
-  for standalone-mode basics, with an 8-step progressive PySpark study path.
+  for standalone-mode basics, with an 8-step progressive PySpark study path
+  and a public JupyterLab instance (`spark` pre-created in every kernel) for
+  a Databricks-notebook-like way to poke at it.
 
 - [`spark-1b-rows-challenge/`](spark-1b-rows-challenge/) — the [One Billion
   Row Challenge (1BRC)](https://github.com/gunnarmorling/1brc) done in

@@ -2,7 +2,7 @@
 # 3 independent resources build in parallel,
 # and the instance waits on all three:
 #
-#   aws_security_group.spark_hello_sg   (no deps — SSH 22, Spark 7077/8080/8081)
+#   aws_security_group.spark_hello_sg   (no deps — SSH 22, Spark 7077/8080/8081, Jupyter 8888)
 #   aws_key_pair.deployer               (no deps — reads var.public_key_path)
 #   data.aws_ami.ubuntu_2604            (no deps — queried from AWS API)
 #           │
@@ -56,6 +56,14 @@ resource "aws_security_group" "spark_hello_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+  ingress {
+    description = "JupyterLab"
+    from_port   = 8888
+    to_port     = 8888
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
   egress {
     from_port   = 0
     to_port     = 0
@@ -96,11 +104,14 @@ data "aws_ami" "ubuntu_2604" {
 # --- EC2 Instances ---
 # See auto_terminate.tf: this instance self-terminates ~2h after creation.
 
-# 1. spark Node: Ubuntu 26.04 (t3.small, 1 vCPU, 2GB RAM, 20GB EBS)
-# why t3? (that's the minimal size has enough network bandwidth)
+# 1. spark Node: Ubuntu 26.04 (t3.medium, 2 vCPUs, 4GB RAM, 20GB EBS)
+# why t3? (that's the minimal family with enough network bandwidth)
+# t3.medium, not t3.small: JupyterLab now runs alongside Java + Spark as
+# an always-on service (see ansible/roles/jupyter) — wants headroom over
+# the previous 2GB box.
 resource "aws_instance" "spark_hello_node" {
   ami                    = data.aws_ami.ubuntu_2604.id
-  instance_type          = "t3.small"
+  instance_type          = "t3.medium"
   key_name               = aws_key_pair.deployer.key_name
   vpc_security_group_ids = [aws_security_group.spark_hello_sg.id]
 
