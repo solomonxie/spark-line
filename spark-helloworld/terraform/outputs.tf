@@ -6,8 +6,10 @@
 #                                  ├─▶ output.spark_master_url   (dns:7077)
 #                                  ├─▶ output.spark_master_ui    (ip:8080)
 #                                  ├─▶ output.ssh_spark_command
+#                                  ├─▶ output.jupyter_url        (ip:8888)
 #                                  └─▶ output.instance_id
 #  var.aws_profile ────────────────────▶ output.aws_profile
+#  random_password.jupyter_password ───▶ output.jupyter_password
 #
 # instance_id is consumed back out-of-band by the Makefile
 # (`terraform output -raw instance_id`) for start-server / stop-server.
@@ -34,6 +36,17 @@ output "spark_master_ui" {
 output "ssh_spark_command" {
   value       = "ssh -i ${var.private_key_path} ubuntu@${aws_instance.spark_hello_node.public_ip}"
   description = "Command to SSH into the spark node"
+}
+
+output "jupyter_url" {
+  value       = "http://${aws_instance.spark_hello_node.public_ip}:8888"
+  description = "JupyterLab UI — login with jupyter_password"
+}
+
+output "jupyter_password" {
+  value       = random_password.jupyter_password.result
+  description = "JupyterLab login password (terraform output -raw jupyter_password)"
+  sensitive   = true
 }
 
 output "instance_id" {
