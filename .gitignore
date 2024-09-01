@@ -15,8 +15,8 @@ __pycache__/
 
 # Spark job artifacts (downloaded datasets, job output):
 *.parquet
-spark-helloworld/output_top_trips/
-spark-helloworld/hello_*_top_trips/
+hello-spark/output_top_trips/
+hello-spark/hello_*_top_trips/
 
 # hello-airflow: local AIRFLOW_HOME for running the study path via venv
 hello-airflow/.airflow_home/

@@ -1,7 +1,7 @@
 """
 Step 1: connect to a real Databricks cluster from your own machine.
 
-Unlike plain PySpark's local[*] mode (see ../spark-helloworld), there's no
+Unlike plain PySpark's local[*] mode (see ../hello-spark), there's no
 local fallback here — Databricks Connect always drives a real, already-
 running cluster over the network. Also note Spark Connect (what Databricks
 Connect is built on) is DataFrame/SQL-only — no sparkContext/RDD API.
