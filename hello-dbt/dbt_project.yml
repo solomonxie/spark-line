@@ -1,15 +1,25 @@
+# Project config — defines the project itself (name, paths, model settings).
+# Connection/credentials live in profiles.yml instead (dbt keeps the two
+# separate so profiles.yml, which often holds secrets, can be kept out of
+# version control or shared across projects via ~/.dbt/).
 name: hello_dbt
 version: "1.0.0"
 config-version: 2
+
+# Must match a profile name (top-level key) in profiles.yml.
 profile: hello_dbt
 
+# Where dbt looks for models and macros, relative to this file.
 model-paths: ["models"]
 macro-paths: ["macros"]
 
+# Directories/files removed by `dbt clean`.
 clean-targets:
   - "target"
   - "dbt_packages"
 
+# Per-model config. Applies +materialized: view to every model
+# under the hello_dbt project unless overridden closer to the model.
 models:
   hello_dbt:
     +materialized: view
