@@ -1,23 +1,16 @@
-# Project-local profile — no ~/.dbt/profiles.yml needed. Point dbt at it
+# Connection profile — defines *how* to connect (adapter, credentials).
+# Kept separate from dbt_project.yml by dbt's design; dbt looks it up by
+# the `profile:` name declared in dbt_project.yml.
+#
+# Project-local file — no ~/.dbt/profiles.yml needed. Point dbt at it
 # with `--profiles-dir .` or `export DBT_PROFILES_DIR=$(pwd)`.
 #
-# `duckdb` (default target) needs nothing but `pip install dbt-duckdb` —
-# every progressive step except 8 runs against it. `postgres` targets the
-# optional EC2 warehouse from ../terraform + ../ansible.
-hello_dbt:
-  target: duckdb
-  outputs:
-    duckdb:
-      type: duckdb
-      path: hello_dbt.duckdb
-      threads: 4
+# Needs nothing but `pip install dbt-duckdb` (see Makefile).
 
-    postgres:
-      type: postgres
-      host: "{{ env_var('PGHOST', 'localhost') }}"
-      user: "{{ env_var('PGUSER', 'dbt') }}"
-      password: "{{ env_var('PGPASSWORD', '') }}"
-      port: 5432
-      dbname: "{{ env_var('PGDATABASE', 'hello_dbt') }}"
-      schema: public
-      threads: 4
+hello_dbt:              # profile name, must match `profile:` in dbt_project.yml
+  target: duckdb        # which output below is used by default
+  outputs:
+    duckdb:              # target name, referenced by `target:` above
+      type: duckdb
+      path: hello_dbt.duckdb   # local DuckDB file, created on first run
+      threads: 4                # max parallel model runs
