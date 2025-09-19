@@ -1,7 +1,6 @@
 # spark-helloworld
 
-Sandbox for experimenting with Apache Spark — standalone mode, clustering,
-and general data processing — plus Databricks-related experiments over time.
+Sandbox for experimenting with Apache Spark — standalone mode, clustering, and general data processing.
 Infra is throwaway by design: spin up, poke at Spark, tear down.
 
 ## Layout
@@ -44,4 +43,5 @@ Master UI: `http://<public-ip>:8080` (see `terraform output spark_master_ui`).
 - Spark version and Java version must stay in lock-step — Spark 4.x requires
   Java 17+. Bump both together in `ansible/roles/admin/vars/main.yml`,
   `ansible/roles/admin/tasks/main.yml`, and `manual_build.sh`.
-- Databricks experiments will land in a sibling directory as they're added.
+- The node self-terminates ~2h after creation (EventBridge Scheduler, see
+  `terraform/auto_terminate.tf`) as a cost safety net.
