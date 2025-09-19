@@ -6,5 +6,6 @@
 *.tfstate.backup
 .terraform/
 .terraform.lock.hcl
+*.out
 
 */ansible/inventory.ini

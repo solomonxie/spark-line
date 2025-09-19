@@ -5,8 +5,9 @@ ssh ubuntu@ec2-xxxxxxxx.compute-1.amazonaws.com -i ~/.ssh/mykeypairxxxxx.pem
 
 sudo apt update && sudo apt upgrade -y
 sudo apt install -y openjdk-11-jdk-headless wget tar
-sudo apt install python3-pip python3-venv
-pip3 install --quiet pyspark pandas
+sudo apt install -y python3-pip python3-venv
+
+pip3 install --quiet --break-system-packages pyspark pandas
 
 wget -q https://archive.apache.org/dist/spark/spark-3.5.0/spark-3.5.0-bin-hadoop3.tgz
 tar -xzf spark-3.5.0-bin-hadoop3.tgz
