@@ -1,0 +1,5 @@
+- name: Setup Spark node
+  hosts: spark_nodes
+  gather_facts: true
+  roles:
+    - admin
