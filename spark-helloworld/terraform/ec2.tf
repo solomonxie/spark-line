@@ -1,3 +1,21 @@
+# The core resource graph.
+# 3 independent resources build in parallel,
+# and the instance waits on all three:
+#
+#   aws_security_group.spark_hello_sg   (no deps — SSH 22, Spark 7077/8080/8081)
+#   aws_key_pair.deployer               (no deps — reads var.public_key_path)
+#   data.aws_ami.ubuntu_2604            (no deps — queried from AWS API)
+#           │
+#           ▼
+#   aws_instance.spark_hello_node
+#     ├─ ami                    = data.aws_ami.ubuntu_2604.id
+#     ├─ key_name               = aws_key_pair.deployer.key_name
+#     └─ vpc_security_group_ids = [aws_security_group.spark_hello_sg.id]
+#
+# user_data (cloud-init) masks tmp.mount so /tmp stays on disk instead of
+# Ubuntu's default tmpfs; user_data_replace_on_change = true means editing
+# that block forces the instance to be replaced, not just rebooted.
+
 # --- Security Group for Spark ---
 resource "aws_security_group" "spark_hello_sg" {
   name        = "spark-hello-sg"
@@ -74,10 +92,11 @@ data "aws_ami" "ubuntu_2604" {
 
 # --- EC2 Instances ---
 
-# 1. spark Node: Ubuntu 26.04 (t2.small, 1 vCPU, 2GB RAM, 20GB EBS)
+# 1. spark Node: Ubuntu 26.04 (t3.small, 1 vCPU, 2GB RAM, 20GB EBS)
+# why t3? (that's the minimal size has enough network bandwidth)
 resource "aws_instance" "spark_hello_node" {
   ami                    = data.aws_ami.ubuntu_2604.id
-  instance_type          = "t2.small"
+  instance_type          = "t3.small"
   key_name               = aws_key_pair.deployer.key_name
   vpc_security_group_ids = [aws_security_group.spark_hello_sg.id]
 
