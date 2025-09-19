@@ -14,14 +14,12 @@
 #           │
 #           ▼
 #   aws_scheduler_schedule.self_terminate
-#     ├─ schedule_expression = at(<time_offset>)   — fires once, UTC
-#     └─ target = EC2 TerminateInstances (AWS SDK universal target)
-#
-# This only ever calls TerminateInstances on aws_instance.spark_hello_node —
-# it cannot touch any other resource. `make destroy-infra` still works fine
-# before the 2h mark; the schedule fires a no-op if the instance is already
-# gone by then. It stays around afterward (state COMPLETED) rather than
-# deleting itself, so it doesn't drift out from under Terraform's state.
+#     ├─ schedule_expression    = at(<time_offset>)   — fires once, UTC
+#     ├─ target                 = EC2 TerminateInstances (AWS SDK universal target)
+#     └─ action_after_completion = DELETE — the schedule removes itself from
+#        the console once it fires, so one-time schedules don't pile up.
+#        Execution history stays visible in CloudTrail / Scheduler's own
+#        invocation log regardless of the schedule resource being deleted.
 
 resource "time_offset" "self_terminate_at" {
   offset_hours = 2
@@ -83,7 +81,5 @@ resource "aws_scheduler_schedule" "self_terminate" {
     })
   }
 
-  # No action_after_completion knob in this provider version — AWS defaults
-  # a one-time schedule to ActionAfterCompletion=NONE, i.e. it stays around
-  # (state COMPLETED) after firing instead of deleting itself.
+  action_after_completion = "DELETE"
 }
