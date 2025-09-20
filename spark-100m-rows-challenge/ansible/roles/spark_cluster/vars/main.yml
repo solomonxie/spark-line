@@ -1,0 +1,10 @@
+spark_master_port: 7077
+spark_master_webui_port: 8080
+
+# t3.xlarge = 4 vCPUs / 16GB RAM. Master takes no dedicated slice; each
+# worker gets 2 cores / 6g, leaving headroom for the OS + master process.
+spark_worker_count: 2
+spark_worker_cores: 2
+spark_worker_memory: "6g"
+# Worker N's web UI listens on spark_worker_webui_base_port + N (8081, 8082, ...)
+spark_worker_webui_base_port: 8080

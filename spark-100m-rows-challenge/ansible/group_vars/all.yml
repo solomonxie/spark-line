@@ -1,0 +1,4 @@
+# Shared across roles/spark_runtime (installs here) and roles/spark_cluster
+# (points systemd units here) — role vars/ don't cross role boundaries, so
+# anything both roles need lives here instead.
+spark_home: "/opt/spark"
