@@ -15,6 +15,9 @@
 # user_data (cloud-init) masks tmp.mount so /tmp stays on disk instead of
 # Ubuntu's default tmpfs; user_data_replace_on_change = true means editing
 # that block forces the instance to be replaced, not just rebooted.
+#
+# Self-termination: aws_instance.spark_hello_node is auto-terminated ~2h
+# after creation by an EventBridge Scheduler rule — see auto_terminate.tf.
 
 # --- Security Group for Spark ---
 resource "aws_security_group" "spark_hello_sg" {
@@ -91,6 +94,7 @@ data "aws_ami" "ubuntu_2604" {
 
 
 # --- EC2 Instances ---
+# See auto_terminate.tf: this instance self-terminates ~2h after creation.
 
 # 1. spark Node: Ubuntu 26.04 (t3.small, 1 vCPU, 2GB RAM, 20GB EBS)
 # why t3? (that's the minimal size has enough network bandwidth)

@@ -19,3 +19,6 @@ experiment, tear down.
 Each project directory owns its own Terraform state, Ansible inventory, and
 `Makefile` (`deploy-infra`, `deploy-software`, `start-server`,
 `stop-server`, `destroy-infra`) — see that project's README for specifics.
+
+Nodes self-terminate a couple hours after creation as a cost safety net
+(see each project's `terraform/` for specifics).
