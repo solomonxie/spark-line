@@ -1,3 +1,10 @@
+# Input declarations only — no resources, nothing to plan. Values are
+# supplied by terraform.tfvars (gitignored, holds ssh_key_name,
+# public_key_path, private_key_path) and by TF_VAR_aws_profile, which the
+# root Makefile exports from AWS_PROFILE.
+#
+#   terraform.tfvars ──┐
+#   TF_VAR_aws_profile ─┴─▶ var.* ──▶ referenced by providers.tf, ec2.tf, outputs.tf
 variable "aws_region" {
   type        = string
   default     = "ca-central-1"
