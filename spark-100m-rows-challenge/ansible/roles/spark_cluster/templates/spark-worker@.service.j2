@@ -1,0 +1,20 @@
+[Unit]
+Description=Spark Worker (webui %i)
+After=network.target spark-master.service
+Requires=spark-master.service
+
+[Service]
+Type=simple
+User=ubuntu
+Environment=SPARK_HOME={{ spark_home }}
+ExecStart={{ spark_home }}/bin/spark-class org.apache.spark.deploy.worker.Worker \
+  spark://{{ ansible_default_ipv4.address }}:{{ spark_master_port }} \
+  --webui-port %i \
+  --cores {{ spark_worker_cores }} \
+  --memory {{ spark_worker_memory }} \
+  --work-dir {{ spark_home }}/work/worker-%i
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

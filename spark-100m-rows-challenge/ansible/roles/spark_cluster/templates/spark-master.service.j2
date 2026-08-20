@@ -1,0 +1,17 @@
+[Unit]
+Description=Spark Master (driver)
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+Environment=SPARK_HOME={{ spark_home }}
+ExecStart={{ spark_home }}/bin/spark-class org.apache.spark.deploy.master.Master \
+  --host {{ ansible_default_ipv4.address }} \
+  --port {{ spark_master_port }} \
+  --webui-port {{ spark_master_webui_port }}
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
