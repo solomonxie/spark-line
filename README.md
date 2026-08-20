@@ -11,6 +11,12 @@ experiment, tear down.
   on one EC2 instance, provisioned with Terraform + Ansible. Starting point
   for standalone-mode basics.
 
+- [`spark-100m-rows-challenge/`](spark-100m-rows-challenge/) — dual-write
+  batch pipeline for 100M+ NYC TLC trip records to Delta Lake and
+  ClickHouse on a single t3.xlarge node (1 driver + 2 workers). Exercises
+  schema enforcement, broadcast joins, skew-aware window aggregation, Delta
+  MERGE upserts, and storage compaction under strict memory/time budgets.
+
 
 ## Conventions
 
