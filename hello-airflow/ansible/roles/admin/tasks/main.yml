@@ -1,0 +1,112 @@
+- name: Update apt cache
+  become: true
+  ansible.builtin.apt:
+    update_cache: true
+
+- name: Install base packages
+  become: true
+  ansible.builtin.apt:
+    name:
+      - python3-pip
+      - python3-venv
+    state: present
+
+- name: Create Airflow home, owned by ubuntu
+  become: true
+  ansible.builtin.file:
+    path: "{{ airflow_home }}"
+    state: directory
+    owner: ubuntu
+    group: ubuntu
+    mode: "0755"
+
+- name: Create Python venv for Airflow
+  ansible.builtin.command: "python3 -m venv {{ airflow_home }}/venv"
+  args:
+    creates: "{{ airflow_home }}/venv/bin/activate"
+
+- name: Detect the venv's Python minor version (for the constraints file)
+  ansible.builtin.command: >
+    {{ airflow_home }}/venv/bin/python3 -c
+    "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')"
+  register: python_version
+  changed_when: false
+
+# Airflow isn't pip-installable without a matching constraints file — it
+# pins every transitive dependency to a combination the Airflow project
+# actually tested, for this exact (airflow_version, python) pair.
+- name: Install Apache Airflow (constrained)
+  ansible.builtin.pip:
+    name: "apache-airflow=={{ airflow_version }}"
+    virtualenv: "{{ airflow_home }}/venv"
+    extra_args: >-
+      --constraint
+      https://raw.githubusercontent.com/apache/airflow/constraints-{{ airflow_version }}/constraints-{{ python_version.stdout }}.txt
+
+- name: Set Airflow environment variables
+  become: true
+  ansible.builtin.copy:
+    dest: /etc/profile.d/airflow.sh
+    content: |
+      export AIRFLOW_HOME={{ airflow_home }}
+      export PATH=$PATH:{{ airflow_home }}/venv/bin
+    mode: "0644"
+
+- name: Initialize the Airflow metadata database
+  environment:
+    AIRFLOW_HOME: "{{ airflow_home }}"
+  ansible.builtin.command: "{{ airflow_home }}/venv/bin/airflow db migrate"
+  args:
+    creates: "{{ airflow_home }}/airflow.db"
+
+- name: Check for an existing admin user
+  environment:
+    AIRFLOW_HOME: "{{ airflow_home }}"
+  ansible.builtin.command: "{{ airflow_home }}/venv/bin/airflow users list"
+  register: airflow_users
+  changed_when: false
+
+- name: "Create the admin user (username/password: admin/admin — change it)"
+  environment:
+    AIRFLOW_HOME: "{{ airflow_home }}"
+  ansible.builtin.command: >
+    {{ airflow_home }}/venv/bin/airflow users create
+    --username admin --password admin
+    --firstname Hello --lastname Airflow
+    --role Admin --email admin@example.com
+  when: "'admin' not in airflow_users.stdout"
+
+- name: Ensure the dags/ directory exists
+  ansible.builtin.file:
+    path: "{{ airflow_home }}/dags"
+    state: directory
+    owner: ubuntu
+    group: ubuntu
+    mode: "0755"
+
+- name: Deploy the progressive study-path DAGs
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../{{ item }}"
+    dest: "{{ airflow_home }}/dags/{{ item }}"
+    owner: ubuntu
+    group: ubuntu
+    mode: "0644"
+  loop: "{{ airflow_dag_files }}"
+
+- name: Deploy Airflow standalone systemd unit
+  become: true
+  ansible.builtin.template:
+    src: airflow-standalone.service.j2
+    dest: /etc/systemd/system/airflow-standalone.service
+    mode: "0644"
+  notify: Reload systemd
+
+- name: Flush handlers so the unit is registered before (re)starting
+  ansible.builtin.meta: flush_handlers
+
+- name: Enable and start Airflow standalone
+  become: true
+  ansible.builtin.systemd:
+    name: airflow-standalone.service
+    enabled: true
+    state: restarted
