@@ -1,0 +1,19 @@
+version: 2
+
+models:
+  - name: dbt_01_hello_model
+    columns:
+      - name: id
+        tests:
+          - not_null
+          - unique
+
+  - name: dbt_04_aggregation
+    columns:
+      - name: borough
+        tests:
+          - not_null
+          - unique
+      - name: total_trips
+        tests:
+          - not_null
