@@ -11,11 +11,12 @@ experiment, tear down.
   on one EC2 instance, provisioned with Terraform + Ansible. Starting point
   for standalone-mode basics.
 
-- [`spark-100m-rows-challenge/`](spark-100m-rows-challenge/) — dual-write
-  batch pipeline for 100M+ NYC TLC trip records to Delta Lake and
-  ClickHouse on a single t3.xlarge node (1 driver + 2 workers). Exercises
-  schema enforcement, broadcast joins, skew-aware window aggregation, Delta
-  MERGE upserts, and storage compaction under strict memory/time budgets.
+- [`spark-1b-rows-challenge/`](spark-1b-rows-challenge/) — the [One Billion
+  Row Challenge (1BRC)](https://github.com/gunnarmorling/1brc) done in
+  PySpark: read a
+  ~1 billion row `station;temperature` file and emit sorted per-station
+  min/mean/max, on a single t3.xlarge node (1 driver + 2 workers) without
+  OOM-killing an executor or spilling the aggregation to disk.
 
 
 ## Conventions
