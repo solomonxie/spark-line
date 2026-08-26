@@ -1,0 +1,77 @@
+- name: Update apt cache
+  become: true
+  ansible.builtin.apt:
+    update_cache: true
+
+- name: Install base packages
+  become: true
+  ansible.builtin.apt:
+    name:
+      - python3-pip
+      - python3-venv
+    state: present
+
+- name: Create Dagster home, owned by ubuntu
+  become: true
+  ansible.builtin.file:
+    path: "{{ dagster_home }}"
+    state: directory
+    owner: ubuntu
+    group: ubuntu
+    mode: "0755"
+
+- name: Create Python venv for Dagster
+  ansible.builtin.command: "python3 -m venv {{ dagster_home }}/venv"
+  args:
+    creates: "{{ dagster_home }}/venv/bin/activate"
+
+- name: Install Dagster + the webserver
+  ansible.builtin.pip:
+    name:
+      - dagster
+      - dagster-webserver
+    virtualenv: "{{ dagster_home }}/venv"
+
+- name: Set Dagster environment variables
+  become: true
+  ansible.builtin.copy:
+    dest: /etc/profile.d/dagster.sh
+    content: |
+      export DAGSTER_HOME={{ dagster_home }}
+      export PATH=$PATH:{{ dagster_home }}/venv/bin
+    mode: "0644"
+
+- name: Ensure the defs/ directory exists
+  ansible.builtin.file:
+    path: "{{ dagster_home }}/defs"
+    state: directory
+    owner: ubuntu
+    group: ubuntu
+    mode: "0755"
+
+- name: Deploy the progressive study-path files
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../{{ item }}"
+    dest: "{{ dagster_home }}/defs/{{ item }}"
+    owner: ubuntu
+    group: ubuntu
+    mode: "0644"
+  loop: "{{ dagster_files }}"
+
+- name: Deploy dagster dev systemd unit
+  become: true
+  ansible.builtin.template:
+    src: dagster-dev.service.j2
+    dest: /etc/systemd/system/dagster-dev.service
+    mode: "0644"
+  notify: Reload systemd
+
+- name: Flush handlers so the unit is registered before (re)starting
+  ansible.builtin.meta: flush_handlers
+
+- name: Enable and start dagster dev
+  become: true
+  ansible.builtin.systemd:
+    name: dagster-dev.service
+    enabled: true
+    state: restarted
