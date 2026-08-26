@@ -1,0 +1,23 @@
+# Project-local profile — no ~/.dbt/profiles.yml needed. Point dbt at it
+# with `--profiles-dir .` or `export DBT_PROFILES_DIR=$(pwd)`.
+#
+# `duckdb` (default target) needs nothing but `pip install dbt-duckdb` —
+# every progressive step except 8 runs against it. `postgres` targets the
+# optional EC2 warehouse from ../terraform + ../ansible.
+hello_dbt:
+  target: duckdb
+  outputs:
+    duckdb:
+      type: duckdb
+      path: hello_dbt.duckdb
+      threads: 4
+
+    postgres:
+      type: postgres
+      host: "{{ env_var('PGHOST', 'localhost') }}"
+      user: "{{ env_var('PGUSER', 'dbt') }}"
+      password: "{{ env_var('PGPASSWORD', '') }}"
+      port: 5432
+      dbname: "{{ env_var('PGDATABASE', 'hello_dbt') }}"
+      schema: public
+      threads: 4

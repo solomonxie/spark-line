@@ -1,0 +1,5 @@
+- name: Setup Postgres node
+  hosts: dbt_nodes
+  gather_facts: true
+  roles:
+    - admin
