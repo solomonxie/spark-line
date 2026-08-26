@@ -96,10 +96,12 @@ data "aws_ami" "ubuntu_2604" {
 # --- EC2 Instances ---
 # See auto_terminate.tf: this instance self-terminates ~2h after creation.
 
-# 1. spark Node: Ubuntu 26.04 (t3.xlarge, 4 vCPUs, 16GB RAM, 30GB EBS)
+# 1. spark Node: Ubuntu 26.04 (t3.xlarge, 4 vCPUs, 16GB RAM, 64GB EBS)
 # why t3? (that's the minimal family with enough network bandwidth)
 # Sized to run master (driver) + 2 workers side by side on one box —
 # see ansible/roles/spark_cluster for the resource split.
+# 64GB EBS: the generated measurements.txt (~1B rows) runs ~15-20GB on
+# disk, plus headroom for Spark's local shuffle-spill scratch space.
 resource "aws_instance" "spark_hello_node" {
   ami                    = data.aws_ami.ubuntu_2604.id
   instance_type          = "t3.xlarge"
@@ -115,7 +117,7 @@ resource "aws_instance" "spark_hello_node" {
   EOF
 
   root_block_device {
-    volume_size           = 30
+    volume_size           = 64
     volume_type           = "gp3"
     delete_on_termination = true
   }
