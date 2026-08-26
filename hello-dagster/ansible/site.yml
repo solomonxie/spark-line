@@ -1,0 +1,5 @@
+- name: Setup Dagster node
+  hosts: dagster_nodes
+  gather_facts: true
+  roles:
+    - admin
