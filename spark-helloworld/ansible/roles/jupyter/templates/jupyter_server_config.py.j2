@@ -1,0 +1,11 @@
+c.ServerApp.ip = "0.0.0.0"
+c.ServerApp.port = {{ jupyter_port }}
+c.ServerApp.open_browser = False
+c.ServerApp.root_dir = "{{ notebook_dir }}"
+c.ServerApp.notebook_dir = "{{ notebook_dir }}"
+c.ServerApp.allow_remote_access = True
+
+# Password-only auth — no token in the URL.
+c.ServerApp.token = ""
+c.ServerApp.password = "{{ jupyter_password_hash.stdout }}"
+c.ServerApp.password_required = True

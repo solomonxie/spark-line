@@ -31,3 +31,6 @@ hello-dbt/.user.yml
 # hello-dagster: `dagster dev` writes a temp storage dir in cwd if
 # DAGSTER_HOME isn't set
 .tmp_dagster_home_*/
+
+# Jupyter checkpoint dirs, wherever notebooks get opened/tested locally
+.ipynb_checkpoints/
