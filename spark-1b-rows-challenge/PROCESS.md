@@ -77,9 +77,22 @@ and sort order before suspecting the aggregation itself.
 
 ## 4. Scale up incrementally
 
-Regenerate on the node at increasing sizes, re-running the same job each
-time, watching the Spark UI (`http://<node-ip>:4040` while a job is
-running) for:
+`spark/solve_01_10k_rows.py` → `solve_04_1b_rows.py` are this exact
+progression already committed as self-contained scripts (each generates
+its own tier's real data on first run, solves, and times itself) — run
+them directly instead of hand-managing `generate-data` calls, if you'd
+rather not retype the commands below:
+
+```
+make push-solve   # copies spark/solve_*.py + data/ to the node
+# on the node:
+spark-submit --master spark://<master-host>:7077 solve_02_1m_rows.py
+spark-submit --master spark://<master-host>:7077 solve_03_100m_rows.py
+```
+
+Either way, regenerate on the node at increasing sizes, re-running the
+same job each time, watching the Spark UI (`http://<node-ip>:4040` while a
+job is running) for:
 
 - **Spill (Memory) / Spill (Disk)** on the aggregation stage — should stay
   at or near 0.
@@ -118,6 +131,13 @@ submitting. Then run the same job unmodified:
 ```
 spark-submit --master spark://<master-host>:7077 job.py \
     --input ~/data/measurements.txt --output ~/results.txt
+```
+
+Or, equivalently, `solve_04_1b_rows.py` (generates the same file itself if
+it isn't already there):
+
+```
+spark-submit --master spark://<master-host>:7077 solve_04_1b_rows.py
 ```
 
 Watch `:4040` and `:8080` while it runs. Record:
