@@ -35,9 +35,9 @@ separately from Terraform (`databricks auth login`, or reuse the same
 ## Progressive study path
 
 Six standalone scripts, each covering one Databricks concept beyond plain
-PySpark (see `../spark-helloworld` for the PySpark fundamentals — this
+PySpark (see `../hello-spark` for the PySpark fundamentals — this
 project doesn't re-teach those). Every file is self-contained — no imports
-between them — though unlike the fully offline `spark-helloworld` scripts,
+between them — though unlike the fully offline `hello-spark` scripts,
 none of them can run without a real workspace and cluster.
 
 | Step | File | Concept |

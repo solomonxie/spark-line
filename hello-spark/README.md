@@ -1,4 +1,4 @@
-# spark-helloworld
+# hello-spark
 
 Sandbox for experimenting with Apache Spark — standalone mode, clustering, and general data processing.
 Infra is throwaway by design: spin up, poke at Spark, tear down.
