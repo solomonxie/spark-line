@@ -10,22 +10,15 @@ combine partial results per station.
 shuffle `Exchange`, then a second `HashAggregate` (final) after it — that's
 the plan shape Task 5's acceptance criteria checks for at full scale.
 
-The sample is built by the project's own `data/generate_measurements.py`
-against the real station/latitude list in `data/stations.csv` — same
-generator the full 1B-row run uses, just a handful of rows.
-
 Run:
     python3 job_02_aggregate.py
 """
 import os
-import sys
+import random
 import tempfile
 
 from pyspark.sql import SparkSession, functions as F
 from pyspark.sql.types import StructType, StructField, StringType, DoubleType
-
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "data"))
-from generate_measurements import load_stations, generate, DEFAULT_STATIONS_FILE  # noqa: E402
 
 MEASUREMENT_SCHEMA = StructType([
     StructField("station", StringType(), False),
@@ -33,9 +26,15 @@ MEASUREMENT_SCHEMA = StructType([
 ])
 
 
-def write_sample(path, rows=2000, stations=10, seed=2):
-    picked = load_stations(DEFAULT_STATIONS_FILE, stations, seed)
-    generate(path, rows, picked, seed)
+def write_sample(path, seed=2):
+    random.seed(seed)
+    stations = [f"Station_{i:02d}" for i in range(10)]
+    baselines = {s: random.uniform(-10.0, 30.0) for s in stations}
+    with open(path, "w") as f:
+        for _ in range(2000):
+            station = random.choice(stations)
+            temp = round(random.gauss(baselines[station], 5.0), 1)
+            f.write(f"{station};{temp}\n")
 
 
 spark = (
