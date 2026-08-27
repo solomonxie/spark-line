@@ -15,15 +15,22 @@ than Spark's `round()`, to match `tools/verify_sample.py`'s brute-force
 reference exactly (Spark's `round()` is HALF_UP; Python's float formatting
 is round-half-to-even — they can disagree by 0.1 on exact `.x5` boundaries).
 
+The sample is built by the project's own `data/generate_measurements.py`
+against the real station/latitude list in `data/stations.csv` — same
+generator the full 1B-row run uses, just a handful of rows.
+
 Run:
     python3 job_03_format_output.py
 """
 import os
-import random
+import sys
 import tempfile
 
 from pyspark.sql import SparkSession, functions as F
 from pyspark.sql.types import StructType, StructField, StringType, DoubleType
+
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "data"))
+from generate_measurements import load_stations, generate, DEFAULT_STATIONS_FILE  # noqa: E402
 
 MEASUREMENT_SCHEMA = StructType([
     StructField("station", StringType(), False),
@@ -31,15 +38,9 @@ MEASUREMENT_SCHEMA = StructType([
 ])
 
 
-def write_sample(path, seed=3):
-    random.seed(seed)
-    stations = [f"Station_{i:02d}" for i in range(10)]
-    baselines = {s: random.uniform(-10.0, 30.0) for s in stations}
-    with open(path, "w") as f:
-        for _ in range(2000):
-            station = random.choice(stations)
-            temp = round(random.gauss(baselines[station], 5.0), 1)
-            f.write(f"{station};{temp}\n")
+def write_sample(path, rows=2000, stations=10, seed=3):
+    picked = load_stations(DEFAULT_STATIONS_FILE, stations, seed)
+    generate(path, rows, picked, seed)
 
 
 def format_result(rows):
