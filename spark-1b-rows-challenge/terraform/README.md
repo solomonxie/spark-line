@@ -15,8 +15,9 @@ terraform apply
   ├─ variables.tf         → resolve inputs
   ├─ ec2.tf                → sg + key pair + ami lookup → aws_instance
   ├─ auto_terminate.tf     → schedule one-time termination ~2h out
+  ├─ jupyter.tf             → generate the JupyterLab password
   ├─ ansible_inventory.tf → write ansible/inventory.ini
-  └─ outputs.tf            → print IPs / URLs / ssh command
+  └─ outputs.tf            → print IPs / URLs / ssh command / jupyter creds
         │
         ▼
 ansible-playbook -i ansible/inventory.ini ansible/site.yml   (deploy-software)

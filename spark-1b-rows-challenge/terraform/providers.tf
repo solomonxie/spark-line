@@ -18,6 +18,11 @@ terraform {
       source  = "hashicorp/time"
       version = "~> 0.11"
     }
+    # Used by jupyter.tf to generate the notebook server's password.
+    random = {
+      source  = "hashicorp/random"
+      version = "~> 3.6"
+    }
   }
 }
 

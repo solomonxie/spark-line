@@ -1,0 +1,14 @@
+jupyter_port: 8888
+notebook_dir: "/home/ubuntu/notebooks"
+
+# Copied into notebook_dir (flattened, basename only) so the progressive
+# lessons + capstone are browsable from JupyterLab too, not just runnable
+# via `spark-submit`/`python3 <file>`.
+study_path_files:
+  - spark/job_01_schema_read.py
+  - spark/job_02_aggregate.py
+  - spark/job_03_format_output.py
+  - spark/job.py
+
+starter_notebooks:
+  - notebooks/00_getting_started.ipynb
