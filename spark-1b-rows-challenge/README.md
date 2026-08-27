@@ -109,9 +109,11 @@ shuffle spill or a bad partition count before just letting it run.
 - `data/` — `generate_measurements.py` produces the input file;
   `stations.csv` is the bundled real station-name/latitude list it samples
   from (no network access needed on the node).
-- `spark/job.py` — entry-point skeleton: SparkSession + CLI args wired up.
-  The read/aggregate/format logic — the actual challenge — is yours to
-  write here.
+- `spark/job_01_schema_read.py` → `job_03_format_output.py` — progressive
+  lessons (Tasks 2-4), each runnable standalone against a tiny inline
+  sample, no cluster needed.
+- `spark/job.py` — the capstone: combines the three lessons into the single
+  job that scales unmodified to the full 1B rows (Task 5).
 - `tools/verify_sample.py` — small, non-Spark brute-force reference for
   checking your job's output on a sample file.
 - `PROCESS.md` — step-by-step progression from a handful of rows on your

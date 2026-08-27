@@ -37,17 +37,24 @@ venv/bin/python tools/verify_sample.py /tmp/sample.txt
 Keep this `/tmp/sample.txt` — you'll compare your Spark job's output
 against this exact reference in step 3.
 
-## 2. Write the job against the tiny sample
+## 2. Walk through the job, then run it against the tiny sample
+
+`spark/job.py` is implemented, built up from three standalone lessons —
+read each before trusting the capstone:
+
+1. `job_01_schema_read.py` — explicit schema (`station: string, temperature:
+   double`) vs. `inferSchema`, and why the latter costs a throwaway full
+   pass over the file.
+2. `job_02_aggregate.py` — `groupBy("station").agg(min, avg, max)`, plus
+   `.explain()` to see the partial/final `HashAggregate` around one shuffle.
+3. `job_03_format_output.py` — sort by station, format the
+   `{Station=min/mean/max, ...}` string from the small collected result.
+
+Each runs standalone (`python3 job_01_schema_read.py`, etc.) against its own
+tiny inline sample — no cluster needed to read them.
 
 Copy `/tmp/sample.txt` to the node (or regenerate it there with `make
-generate-data ROWS=10000 STATIONS=20`), then implement `spark/job.py`:
-
-1. Read the file with an explicit schema (`station: string, temperature:
-   double`) — split on `;`, don't let Spark infer types over the whole file.
-2. `groupBy("station").agg(min, avg, max)`.
-3. Round each value to 1 decimal, sort by station name, format the
-   `{Station=min/mean/max, ...}` string.
-4. Write it to the output path (and print it — useful for a quick look).
+generate-data ROWS=10000 STATIONS=20`), then run the capstone against it:
 
 ```
 make push-job
