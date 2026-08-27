@@ -1,0 +1,107 @@
+# Installs into the same (system, no venv) Python environment
+# roles/spark_runtime already set up pyspark/pandas in — so the default
+# kernel can `import pyspark` with no extra kernel configuration. Installed
+# as ubuntu (no `become`), so the `jupyter` executable lands in
+# ~/.local/bin, not on the default PATH — referenced by absolute path in
+# templates/jupyter.service.j2.
+- name: Install JupyterLab
+  ansible.builtin.pip:
+    name: jupyterlab
+    extra_args: "--quiet --break-system-packages --use-pep517"
+
+- name: Create Jupyter config/notebook/startup directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: ubuntu
+    group: ubuntu
+    mode: "0755"
+  loop:
+    - /home/ubuntu/.jupyter
+    - "{{ notebook_dir }}"
+    - /home/ubuntu/.ipython/profile_default/startup
+
+- name: Deploy the progressive study-path files (for reference/browsing)
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../{{ item }}"
+    dest: "{{ notebook_dir }}/{{ item | basename }}"
+    owner: ubuntu
+    group: ubuntu
+    mode: "0644"
+  loop: "{{ study_path_files }}"
+
+- name: Deploy the starter notebook(s)
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../{{ item }}"
+    dest: "{{ notebook_dir }}/{{ item | basename }}"
+    owner: ubuntu
+    group: ubuntu
+    mode: "0644"
+  loop: "{{ starter_notebooks }}"
+
+- name: Deploy the IPython startup script (auto-creates `spark`)
+  ansible.builtin.copy:
+    dest: /home/ubuntu/.ipython/profile_default/startup/00-spark.py
+    owner: ubuntu
+    group: ubuntu
+    mode: "0644"
+    content: |
+      # Runs automatically for every new IPython/Jupyter kernel in this
+      # profile. Defaults to local[*] — no dependency on the standalone
+      # master/worker cluster being up (see ../../../README.md). Point it
+      # at the real cluster instead with:
+      #     export SPARK_MASTER_URL=spark://$(hostname):7077
+      # (then restart the Jupyter kernel/service).
+      import os
+
+      from pyspark.sql import SparkSession
+
+      spark = (
+          SparkSession.builder
+          .appName("jupyter")
+          .master(os.environ.get("SPARK_MASTER_URL", "local[*]"))
+          .getOrCreate()
+      )
+
+      print(f"SparkSession ready as `spark` (master={spark.sparkContext.master})")
+
+# jupyter_server (a jupyterlab dependency) is now importable from
+# `python3` for the ubuntu user — pip --break-system-packages without
+# `become` installs to ~/.local/lib/..., which the system python3
+# auto-adds to sys.path via user-site (no venv/interpreter of its own
+# lands in ~/.local/bin — only console scripts like `jupyter` do, see
+# jupyter.service.j2's ExecStart).
+- name: Hash the Jupyter password
+  ansible.builtin.command: >
+    python3 -c
+    "from jupyter_server.auth import passwd; print(passwd('{{ jupyter_password }}'))"
+  register: jupyter_password_hash
+  changed_when: false
+  no_log: true
+
+- name: Deploy Jupyter server config
+  ansible.builtin.template:
+    src: jupyter_server_config.py.j2
+    dest: /home/ubuntu/.jupyter/jupyter_server_config.py
+    owner: ubuntu
+    group: ubuntu
+    mode: "0600"
+  no_log: true
+
+- name: Deploy Jupyter systemd unit
+  become: true
+  ansible.builtin.template:
+    src: jupyter.service.j2
+    dest: /etc/systemd/system/jupyter.service
+    mode: "0644"
+  notify: Reload systemd
+
+- name: Flush handlers so the unit is registered before (re)starting
+  ansible.builtin.meta: flush_handlers
+
+- name: Enable and start Jupyter
+  become: true
+  ansible.builtin.systemd:
+    name: jupyter.service
+    enabled: true
+    state: restarted

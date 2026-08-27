@@ -4,3 +4,4 @@
   roles:
     - spark_runtime
     - spark_cluster
+    - jupyter

@@ -2,7 +2,7 @@
 # 3 independent resources build in parallel,
 # and the instance waits on all three:
 #
-#   aws_security_group.spark_hello_sg   (no deps — SSH 22, Spark 7077/8080/8081)
+#   aws_security_group.spark_hello_sg   (no deps — SSH 22, Spark 7077/8080/8081, Jupyter 8888)
 #   aws_key_pair.deployer               (no deps — reads var.public_key_path)
 #   data.aws_ami.ubuntu_2604            (no deps — queried from AWS API)
 #           │
@@ -52,6 +52,14 @@ resource "aws_security_group" "spark_hello_sg" {
     description = "Spark Worker Web UI (workers 1-2)"
     from_port   = 8081
     to_port     = 8082
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    description = "JupyterLab"
+    from_port   = 8888
+    to_port     = 8888
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
