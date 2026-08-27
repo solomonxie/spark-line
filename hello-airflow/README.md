@@ -1,20 +1,8 @@
 # hello-airflow
 
 Sandbox for experimenting with Apache Airflow — DAGs, task dependencies,
-XComs, and the TaskFlow API. Infra is throwaway by design: spin up, poke
-at it, tear down.
-
-## Layout
-
-- `terraform/` — provisions the EC2 node this project runs on and writes
-  its address into the Ansible inventory. See `terraform/README.md` for
-  the resource graph and the self-termination safety net.
-- `ansible/` — installs a Python venv, Apache Airflow, and runs it
-  standalone as a systemd service. See `ansible/README.md`.
-- `hello_airflow_01_hello_dag.py` ... `hello_airflow_08_real_pipeline.py`
-  — a progressive study path, one Airflow concept per file. See below.
-- `Makefile` — day-to-day commands, wraps Terraform/Ansible/AWS CLI calls
-  (see below).
+XComs, and the TaskFlow API. Infra is throwaway: spin up, poke at it, tear
+down.
 
 ## How to use this
 
@@ -27,7 +15,7 @@ make stop-server        # aws ec2 stop-instances (save cost when idle)
 make destroy-infra      # terraform destroy — tear everything down
 ```
 
-`AWS_PROFILE` defaults to `prod` in the Makefile; override with
+`AWS_PROFILE` defaults to `prod`; override with
 `make deploy-infra AWS_PROFILE=<profile>`.
 
 `deploy-software` also deploys the progressive study-path DAGs into the
@@ -38,11 +26,10 @@ airflow_webserver_url`), login `admin` / `admin`.
 ## Progressive study path
 
 Eight standalone scripts, `hello_airflow_01_...py` through
-`hello_airflow_08_...py`, each covering one Airflow concept. Every file is
-fully self-contained — its own DAG, no imports between them — and runs on
-its own via `DAG.test()` (Airflow 2.5+), which executes the whole DAG
-locally against a throwaway SQLite database. No webserver, no scheduler,
-no EC2 node required to work through the path.
+`hello_airflow_08_...py`, one Airflow concept each. Fully self-contained —
+own DAG, no imports between them — and runnable via `DAG.test()` (Airflow
+2.5+) against a throwaway SQLite database, no webserver/scheduler/EC2 node
+required.
 
 | Step | File | Concept |
 | --- | --- | --- |
@@ -55,8 +42,7 @@ no EC2 node required to work through the path.
 | 7 | `hello_airflow_07_schedule_and_sensors.py` | `schedule` + a polling `PythonSensor` |
 | 8 | `hello_airflow_08_real_pipeline.py` | Capstone: a real extract/transform/load pipeline |
 
-One-time setup (any machine with `apache-airflow` installed — a local
-venv, or SSH'd into the node):
+One-time setup (local venv or SSH'd into the node):
 
 ```
 python3 -m venv venv && venv/bin/pip install apache-airflow
@@ -70,21 +56,15 @@ Then run any step directly:
 venv/bin/python hello_airflow_01_hello_dag.py
 ```
 
-All eight were run end to end against Airflow 2.10.5 while writing this
-(including step 6 genuinely retrying and succeeding on its second
-attempt) — pin that version if you want the exact behavior described
-above.
-
 ## Self-termination
 
 The node auto-terminates ~2h after creation via a one-time EventBridge
-Scheduler rule (cost safety net, no action needed) — see
-`terraform/auto_terminate.tf`. If you're still using the node past that
-window, re-running `make deploy-infra` does **not** push the deadline out;
-you'd need to destroy/recreate it, or extend `auto_terminate.tf` yourself.
+rule (see `terraform/auto_terminate.tf`). Re-running `make deploy-infra`
+doesn't push the deadline out — destroy/recreate, or extend
+`auto_terminate.tf` yourself.
 
 ## Notes
 
-- Airflow version and Python version must stay compatible with each
-  other's constraints file — see the note in `ansible/README.md`. Bump
-  `airflow_version` in `ansible/roles/admin/vars/main.yml` to upgrade.
+- Airflow and Python versions must stay compatible with each other's
+  constraints file — see `ansible/README.md`. Bump `airflow_version` in
+  `ansible/roles/admin/vars/main.yml` to upgrade.

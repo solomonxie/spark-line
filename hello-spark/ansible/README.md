@@ -2,8 +2,8 @@
 
 Configures the node Terraform created: Java, Spark, PySpark/pandas, and
 JupyterLab. `roles/admin` is the automated version of `../manual_build.sh`
-— read that script first if you want to know what each task below is
-actually doing on the box.
+— read that script first for what each task below actually does on the
+box.
 
 ```
 site.yml                          → applies roles below, in order, to host group `spark_nodes`
@@ -28,23 +28,22 @@ Run through the repo-root `Makefile`:
 make deploy-software
 ```
 
-which runs `ansible-playbook -i inventory.ini site.yml` (with host key
-checking off, since the node's IP is new every time it's recreated).
-Requires `deploy-infra` to have run first — `inventory.ini` won't exist
-otherwise.
+which runs `ansible-playbook -i inventory.ini site.yml` (host key checking
+off, since the node's IP is new every time it's recreated). Requires
+`deploy-infra` to have run first.
 
 Tasks are written to be re-run safely: package installs are idempotent,
-the Spark extract/rename steps are skipped if `spark-submit` is already
-present (`spark_installed` check in `roles/admin/tasks/main.yml`), and
+the Spark extract/rename steps skip if `spark-submit` is already present
+(`spark_installed` check in `roles/admin/tasks/main.yml`), and
 `roles/jupyter`'s systemd unit is declarative — re-applying just
-redeploys it and restarts the service (which re-hashes and re-applies
-whatever `jupyter_password` Terraform generated that run).
+redeploys it and restarts the service (re-hashing whatever
+`jupyter_password` Terraform generated that run).
 
 ## Notes
 
 - Bump `spark_version`/`hadoop_version` in `roles/admin/vars/main.yml`
   alongside the Java version in `roles/admin/tasks/main.yml`, and
-  `manual_build.sh` — see the version note in the top-level `../README.md`.
+  `manual_build.sh` — see the version note in `../README.md`.
 - JupyterLab installs into the same environment as pyspark (system pip,
   `--break-system-packages`, no `become`) so the default kernel can
   `import pyspark` with no extra kernel setup — see `roles/jupyter/
