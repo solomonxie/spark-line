@@ -1,23 +1,20 @@
-export
-AWS_PROFILE := prod
-TF_VAR_aws_profile := ${AWS_PROFILE}
-EC2_ID := "$$(terraform -chdir=terraform output -raw instance_id)"
+VENV := venv
+PYTHON := ${VENV}/bin/python
+PIP := ${VENV}/bin/pip
 
 
-deploy-infra:
-	terraform -chdir=terraform apply --auto-approve
+${VENV}/bin/activate:
+	python3 -m venv ${VENV}
 
-deploy-software:
-	ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i ansible/inventory.ini ansible/site.yml
+install: ${VENV}/bin/activate
+	${PIP} install --upgrade pip
+	${PIP} install dbt-duckdb
 
+run:
+	${VENV}/bin/dbt run
 
-destroy-infra:
-	terraform -chdir=terraform destroy
+test:
+	${VENV}/bin/dbt test
 
-
-stop-server:
-	aws ec2 stop-instances --instance-ids ${EC2_ID} --profile ${AWS_PROFILE}
-
-
-start-server:
-	aws ec2 start-instances --instance-ids ${EC2_ID} --profile ${AWS_PROFILE}
+clean:
+	rm -rf ${VENV} target logs dbt_packages *.duckdb
