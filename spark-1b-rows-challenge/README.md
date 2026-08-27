@@ -54,51 +54,16 @@ No fixed time SLA (the original's 10s target doesn't transfer). As a
 guide, expect low-single-digit minutes once properly partitioned — much
 longer than that signals shuffle spill or a bad partition count.
 
-## How to use this
-
-**Automated path** — Terraform provisions the node, Ansible configures it,
-the `Makefile` drives both:
-
-```
-make deploy-infra       # terraform apply — creates the EC2 node
-make deploy-software    # ansible-playbook — installs Java/Spark/pyspark/JupyterLab
-
-make start-server       # aws ec2 start-instances (resume a stopped node)
-make stop-server        # aws ec2 stop-instances (save cost when idle)
-make destroy-infra      # terraform destroy — tear everything down
-```
-
-`AWS_PROFILE` defaults to `prod`; override with
-`make deploy-infra AWS_PROFILE=<profile>`.
-
-`deploy-software` also starts the Spark cluster itself — 1 master/driver +
-2 workers, as systemd services on the same node. SSH in (`terraform
--chdir=terraform output ssh_spark_command`) only to run
-`spark-submit`/`pyspark` jobs or check `systemctl status spark-master
-spark-worker@8081 spark-worker@8082`.
-
-Master UI: `http://<public-ip>:8080`. Worker UIs: `:8081` and `:8082`.
-
-**Data & job prep** — once the node is up:
-
-```
-make generate-data ROWS=1000000 STATIONS=200   # small run first, to iterate
-make generate-data                             # full 1B rows (defaults)
-make push-job                                  # copy spark/job.py to the node
-make push-solve                                # copy spark/solve_*.py + data/ to the node
-make fetch-results                             # copy ~/results.txt back
-```
-
-Then SSH in and drive `spark-submit` yourself — see `PROCESS.md` for the
-progression, or run the `solve_*.py` scale ladder directly (each generates
-its own tier's data on first run):
-
-```
-spark-submit --master spark://<master-host>:7077 solve_01_10k_rows.py
-spark-submit --master spark://<master-host>:7077 solve_02_1m_rows.py
-spark-submit --master spark://<master-host>:7077 solve_03_100m_rows.py
-spark-submit --master spark://<master-host>:7077 solve_04_1b_rows.py
-```
+`make deploy-infra && make deploy-software` provisions the node and starts
+the Spark cluster (master UI `http://<public-ip>:8080`, workers
+`:8081`/`:8082`); `make generate-data` / `make push-job` / `make
+push-solve` / `make fetch-results` handle data + job prep, then SSH in
+(`terraform -chdir=terraform output ssh_spark_command`) and run
+`spark-submit` — see `PROCESS.md` for the full progression, or run the
+`solve_01_10k_rows.py` → `solve_04_1b_rows.py` scale ladder directly (each
+generates its own tier's data on first run). `make destroy-infra` tears
+down; node self-terminates ~2h after creation regardless — see
+`terraform/auto_terminate.tf`.
 
 ## Jupyter
 
@@ -109,29 +74,16 @@ open "$(terraform -chdir=terraform output -raw jupyter_url)"
 terraform -chdir=terraform output -raw jupyter_password
 ```
 
-`notebooks/` (seeded with `00_getting_started.ipynb`, `job_01_schema_read.py`
-→ `job.py`, and `solve_01_10k_rows.py` → `solve_04_1b_rows.py`) is the
-JupyterLab home directory; the data generator is seeded alongside at
-`~/1brc-data-gen`, so `solve_*.py`'s self-generate-if-missing step works
-out of the box.
-
+`notebooks/` (seeded with `00_getting_started.ipynb`, the `job_*.py`
+lessons, and the `solve_*.py` scale ladder) is the JupyterLab home
+directory; the data generator is seeded alongside at `~/1brc-data-gen`.
 Every new kernel already has a `spark` SparkSession, defaulting to
-`local[*]`. To attach it to the real cluster instead: start the cluster
-per the section above, then on the node `export
-SPARK_MASTER_URL=spark://$(hostname):7077` and `sudo systemctl restart
-jupyter`.
+`local[*]` — export `SPARK_MASTER_URL` and restart (`sudo systemctl
+restart jupyter`) to attach it to the real cluster.
 
 The Jupyter password is Terraform-generated; port 8888 is open to
 `0.0.0.0/0` like everything else in this repo, so it's the only thing
-standing between the internet and code execution here — don't leave the
-node up longer than you're using it.
-
-## Self-termination
-
-The node auto-terminates ~2h after creation via a one-time EventBridge
-rule (see `terraform/auto_terminate.tf`). Re-running `make deploy-infra`
-doesn't push the deadline out — destroy/recreate, or extend
-`auto_terminate.tf` yourself.
+standing between the internet and code execution here.
 
 ## Notes
 
