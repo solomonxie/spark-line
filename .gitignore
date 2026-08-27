@@ -21,7 +21,8 @@ hello-spark/hello_*_top_trips/
 # hello-airflow: local AIRFLOW_HOME for running the study path via venv
 hello-airflow/.airflow_home/
 
-# hello-dbt: dbt's own generated state
+# hello-dbt: local venv + dbt's own generated state
+hello-dbt/venv/
 hello-dbt/target/
 hello-dbt/logs/
 hello-dbt/dbt_packages/
