@@ -1,0 +1,17 @@
+jupyter_port: 8888
+notebook_dir: "/home/ubuntu/notebooks"
+
+# Copied into notebook_dir so the study path is browsable from JupyterLab
+# too, not just runnable via `python3 <file>`.
+study_path_files:
+  - hello_01_spark_session.py
+  - hello_02_rdd_basics.py
+  - hello_03_dataframe_basics.py
+  - hello_04_transformations.py
+  - hello_05_aggregations.py
+  - hello_06_window_functions.py
+  - hello_07_read_write_files.py
+  - hello_08_real_world_etl.py
+
+starter_notebooks:
+  - notebooks/00_getting_started.ipynb

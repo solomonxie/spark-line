@@ -1,0 +1,17 @@
+[Unit]
+Description=JupyterLab
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory={{ notebook_dir }}
+Environment=SPARK_HOME={{ spark_home }}
+Environment=PYSPARK_PYTHON=python3
+Environment=PATH=/home/ubuntu/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:{{ spark_home }}/bin:{{ spark_home }}/sbin
+ExecStart=/home/ubuntu/.local/bin/jupyter lab --config=/home/ubuntu/.jupyter/jupyter_server_config.py
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
