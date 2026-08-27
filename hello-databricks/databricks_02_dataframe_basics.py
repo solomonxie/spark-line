@@ -1,7 +1,7 @@
 """
 Step 2: DataFrame basics over a remote connection.
 
-Same DataFrame API as plain PySpark (see ../spark-helloworld/hello_03_*)
+Same DataFrame API as plain PySpark (see ../hello-spark/hello_03_*)
 — the only difference from here on is that every operation is shipped to
 and executed on the cluster via Spark Connect, then only the result (e.g.
 what .show()/.collect() needs) comes back to your machine.
