@@ -2,22 +2,11 @@
 
 Sandbox for experimenting with Databricks — Unity Catalog, Delta Lake, and
 the managed Jobs runtime — from your own machine via Databricks Connect.
-Infra is throwaway by design: spin up a cluster, poke at it, tear down.
+Infra is throwaway: spin up a cluster, poke at it, tear down.
 
 Unlike this repo's other `hello-*` projects, there's no local fallback:
-Databricks is a managed service, so every script here needs a real
-workspace (a free trial or Community Edition works) and a running cluster
-to talk to — there's no `local[*]` equivalent.
-
-## Layout
-
-- `terraform/` — provisions a single-node cluster and a Unity Catalog
-  schema/volume inside your workspace. See `terraform/README.md`.
-- No `ansible/` here — Databricks manages the cluster's OS/runtime itself;
-  there's nothing to SSH into or configure.
-- `databricks_01_connect_session.py` ... `databricks_06_job_submit.py` — a
-  progressive study path, one Databricks concept per file. See below.
-- `Makefile` — wraps Terraform + `databricks` CLI calls (see below).
+every script here needs a real workspace and a running cluster — no
+`local[*]` equivalent.
 
 ## How to use this
 
@@ -29,16 +18,14 @@ make destroy-infra     # terraform destroy — tear everything down
 ```
 
 `start-cluster`/`stop-cluster` need the `databricks` CLI configured
-separately from Terraform (`databricks auth login`, or reuse the same
-`DATABRICKS_HOST`/`DATABRICKS_TOKEN` the scripts below use).
+separately from Terraform (`databricks auth login`, or reuse
+`DATABRICKS_HOST`/`DATABRICKS_TOKEN`).
 
 ## Progressive study path
 
-Six standalone scripts, each covering one Databricks concept beyond plain
-PySpark (see `../hello-spark` for the PySpark fundamentals — this
-project doesn't re-teach those). Every file is self-contained — no imports
-between them — though unlike the fully offline `hello-spark` scripts,
-none of them can run without a real workspace and cluster.
+Six standalone scripts, one Databricks concept each beyond plain PySpark
+(see `../hello-spark` for fundamentals). Self-contained, though none can
+run without a real workspace and cluster.
 
 | Step | File | Concept |
 | --- | --- | --- |
@@ -74,19 +61,17 @@ python3 databricks_01_connect_session.py
 ```
 
 `databricks-connect`'s version should match your cluster's Databricks
-Runtime major version — if you change `spark_version` in `terraform/`,
-reinstall `databricks-connect` to match.
+Runtime major version.
 
 ## Self-termination
 
 No EventBridge rule here — `terraform/cluster.tf`'s
 `autotermination_minutes` (default 30) is Databricks' own idle-shutdown,
-set directly on the cluster. See `terraform/README.md`.
+set on the cluster.
 
 ## Notes
 
-- These scripts are checked against the current `databricks-connect` /
+- These scripts are checked against current `databricks-connect`/
   `databricks-sdk` APIs but not run end-to-end here — that needs a real
-  workspace. If something's drifted by the time you run this, the SDK's
-  own docstrings (`python3 -c "help(...)"`) are the fastest way to check
-  a call's current shape.
+  workspace. If something's drifted, the SDK's own docstrings (`python3 -c
+  "help(...)"`) are the fastest check.
