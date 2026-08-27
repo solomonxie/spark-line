@@ -9,6 +9,7 @@
     name:
       - openjdk-17-jdk-headless
       - wget
+      - curl
       - tar
       - python3-pip
       - python3-venv
@@ -24,10 +25,16 @@
     name: pandas
     extra_args: "--quiet --break-system-packages"
 
+# ansible.builtin.get_url (urllib-based) was observed hanging indefinitely
+# partway through this download on this image's Python — silently stalled
+# at a few hundred KB with no error, no retry, no timeout. curl (already
+# proven to fetch this exact URL at full speed) sidesteps it entirely.
 - name: Download Spark archive
-  ansible.builtin.get_url:
-    url: "{{ spark_download_url }}"
-    dest: "/tmp/{{ spark_archive }}"
+  ansible.builtin.command: >
+    curl --fail --location --silent --show-error --connect-timeout 15 --max-time 900
+    --output /tmp/{{ spark_archive }} {{ spark_download_url }}
+  args:
+    creates: "/tmp/{{ spark_archive }}"
 
 - name: Check if Spark is already extracted
   ansible.builtin.stat:

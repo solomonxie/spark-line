@@ -42,6 +42,12 @@ generate-data:
 push-job:
 	${NODE_SCP} spark/job.py ubuntu@${NODE_IP}:~/job.py
 
+# Copies the solve_*.py scale ladder AND data/ (each solve_*.py generates
+# its own tier's input on first run via ~/1brc-data-gen) to the node.
+push-solve:
+	${NODE_SCP} -r data ubuntu@${NODE_IP}:~/1brc-data-gen
+	${NODE_SCP} spark/solve_*.py ubuntu@${NODE_IP}:~/
+
 # Pulls a results file back from the node's home directory.
 fetch-results:
 	${NODE_SCP} ubuntu@${NODE_IP}:~/results.txt ./results.txt

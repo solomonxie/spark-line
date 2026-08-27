@@ -30,6 +30,14 @@
     mode: "0644"
   loop: "{{ study_path_files }}"
 
+- name: Deploy the data generator (solve_*.py's ensure_data() finds it at ~/1brc-data-gen)
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../data/"
+    dest: /home/ubuntu/1brc-data-gen/
+    owner: ubuntu
+    group: ubuntu
+    mode: "0644"
+
 - name: Deploy the starter notebook(s)
   ansible.builtin.copy:
     src: "{{ playbook_dir }}/../{{ item }}"

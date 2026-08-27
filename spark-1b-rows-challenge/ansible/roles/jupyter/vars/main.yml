@@ -9,6 +9,10 @@ study_path_files:
   - spark/job_02_aggregate.py
   - spark/job_03_format_output.py
   - spark/job.py
+  - spark/solve_01_10k_rows.py
+  - spark/solve_02_1m_rows.py
+  - spark/solve_03_100m_rows.py
+  - spark/solve_04_1b_rows.py
 
 starter_notebooks:
   - notebooks/00_getting_started.ipynb

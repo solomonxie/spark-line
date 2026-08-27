@@ -20,6 +20,7 @@ site.yml                          → applies roles below, in order, to host gro
   └─ roles/jupyter                 → installs + serves JupyterLab
        ├─ vars/main.yml            → port, notebook dir, files to seed it with
        └─ tasks/main.yml           → pip install jupyterlab → deploy notebooks/spark/
+                                      + data/ (→ ~/1brc-data-gen, for solve_*.py) →
                                       startup script → hash password → config →
                                       systemd unit → enable/start
 

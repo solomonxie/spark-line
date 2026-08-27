@@ -116,6 +116,11 @@ shuffle spill or a bad partition count before just letting it run.
   sample, no cluster needed.
 - `spark/job.py` — the capstone: combines the three lessons into the single
   job that scales unmodified to the full 1B rows (Task 5).
+- `spark/solve_01_10k_rows.py` → `solve_04_1b_rows.py` — the challenge
+  actually solved, at each scale tier: self-contained (generates its own
+  real data if missing, solves, reports wall-clock time), the same
+  read/aggregate/format solve as `job.py` pinned to one fixed size, so you
+  can run/compare 10K → 1M → 100M → 1B without hand-managing input files.
 - `tools/verify_sample.py` — small, non-Spark brute-force reference for
   checking your job's output on a sample file.
 - `PROCESS.md` — step-by-step progression from a handful of rows on your
@@ -156,11 +161,21 @@ spark_master_ui`). Worker UIs: `:8081` and `:8082`.
 make generate-data ROWS=1000000 STATIONS=200   # small run first, to iterate
 make generate-data                             # full 1B rows (defaults)
 make push-job                                  # copy spark/job.py to the node
+make push-solve                                # copy spark/solve_*.py + data/ to the node
 make fetch-results                             # copy ~/results.txt back
 ```
 
 Then SSH in and drive `spark-submit` yourself against whatever file/flags
-you're testing — see `PROCESS.md` for the progression.
+you're testing — see `PROCESS.md` for the progression, or run the
+`solve_*.py` scale ladder directly (each generates its own tier's data on
+first run, so no separate `generate-data` call needed):
+
+```
+spark-submit --master spark://<master-host>:7077 solve_01_10k_rows.py
+spark-submit --master spark://<master-host>:7077 solve_02_1m_rows.py
+spark-submit --master spark://<master-host>:7077 solve_03_100m_rows.py
+spark-submit --master spark://<master-host>:7077 solve_04_1b_rows.py
+```
 
 ## Jupyter
 
@@ -174,8 +189,10 @@ terraform -chdir=terraform output -raw jupyter_password
 ```
 
 Log in with that password. `notebooks/` (seeded with `00_getting_started.
-ipynb` and `job_01_schema_read.py` → `job.py`, for reference) is the
-JupyterLab home directory.
+ipynb`, `job_01_schema_read.py` → `job.py`, and `solve_01_10k_rows.py` →
+`solve_04_1b_rows.py`, for reference) is the JupyterLab home directory —
+the data generator is seeded alongside them at `~/1brc-data-gen`, so the
+`solve_*.py` files' self-generate-if-missing step works out of the box.
 
 Every new notebook kernel already has a `spark` SparkSession, created
 automatically by an IPython startup script — no cell needed to build one.
