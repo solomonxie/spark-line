@@ -25,13 +25,15 @@
     name: pandas
     extra_args: "--quiet --break-system-packages"
 
-# ansible.builtin.get_url (urllib-based) was observed hanging indefinitely
-# partway through this download on this image's Python — silently stalled
-# at a few hundred KB with no error, no retry, no timeout. curl (already
-# proven to fetch this exact URL at full speed) sidesteps it entirely.
+# ansible.builtin.get_url appeared to hang partway through this download;
+# turned out to be an artifact of watching a stale temp file from an
+# earlier attempt, not an actual stall — curl here confirmed real (if
+# modest, ~350-600 KB/s from this region) steady progress throughout.
+# --max-time is generous headroom over the ~25 min this download actually
+# takes at that rate, not evidence it needs to be — err high, not low.
 - name: Download Spark archive
   ansible.builtin.command: >
-    curl --fail --location --silent --show-error --connect-timeout 15 --max-time 900
+    curl --fail --location --silent --show-error --connect-timeout 15 --max-time 2400
     --output /tmp/{{ spark_archive }} {{ spark_download_url }}
   args:
     creates: "/tmp/{{ spark_archive }}"
