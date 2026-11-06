@@ -35,3 +35,4 @@ hello-dbt/.user.yml
 
 # Jupyter checkpoint dirs, wherever notebooks get opened/tested locally
 .ipynb_checkpoints/
+.DS_Store
